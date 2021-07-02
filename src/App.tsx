@@ -4,16 +4,16 @@ import { Preview } from './Preview'
 
 export const App: React.FC<{}> = () => {
   const ref = useRef<Canvas>(null)
-  const [imageUrl, setImageUrl] = useState<string | null>(null)
+  const [imageData, setImageData] = useState<ImageData | null>(null)
 
   return (
     <div>
       <div>
         <button
           onClick={() => {
-            const imageUrl = ref.current?.exportImage()
-            if (imageUrl != null) {
-              setImageUrl(imageUrl)
+            const imageData = ref.current?.getImageData()
+            if (imageData != null) {
+              setImageData(imageData)
             }
           }}
         >
@@ -21,11 +21,11 @@ export const App: React.FC<{}> = () => {
         </button>
         <button onClick={() => ref.current?.clearCanvas()}>clear</button>
       </div>
-      {imageUrl != null && (
+      {imageData != null && (
         <Preview
-          imageUrl={imageUrl}
+          imageData={imageData}
           onClose={() => {
-            setImageUrl(null)
+            setImageData(null)
           }}
         />
       )}

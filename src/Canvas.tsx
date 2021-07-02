@@ -126,8 +126,8 @@ export class Canvas extends React.Component<Props, State> {
     )
   }
 
-  exportImage(): string | null {
-    return this.canvasRef.current?.toDataURL() ?? null
+  getImageData(): ImageData | null {
+    return this.imageData
   }
 
   clearCanvas() {

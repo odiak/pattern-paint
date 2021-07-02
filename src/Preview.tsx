@@ -1,10 +1,10 @@
 import React, { createRef } from 'react'
 
 type Props = {
-  imageUrl: string
+  imageData: ImageData
   onClose: () => void
 }
-export const Preview: React.FC<Props> = ({ imageUrl, onClose }) => {
+export const Preview: React.FC<Props> = ({ imageData, onClose }) => {
   return (
     <div
       style={{
@@ -15,7 +15,7 @@ export const Preview: React.FC<Props> = ({ imageUrl, onClose }) => {
         bottom: 0
       }}
     >
-      <PreviewCanvas imageUrl={imageUrl} />
+      <PreviewCanvas imageData={imageData} />
       <button onClick={onClose} style={{ position: 'absolute' }}>
         close
       </button>
@@ -23,25 +23,17 @@ export const Preview: React.FC<Props> = ({ imageUrl, onClose }) => {
   )
 }
 
-class PreviewCanvas extends React.Component<{ imageUrl: string }, {}> {
+class PreviewCanvas extends React.Component<{ imageData: ImageData }, {}> {
   private canvasRef = createRef<HTMLCanvasElement>()
   private renderingContext: CanvasRenderingContext2D | null = null
-  private imagePromise: Promise<HTMLImageElement> | null = null
   private width = -1
   private height = -1
   private observerAndElement: [ResizeObserver, HTMLElement] | null = null
   private scaleFactor = 2
-  private scale = 0.2
+  private scale = 0.8
 
   componentDidMount() {
     this.initCanvas()
-    this.imagePromise = new Promise((resolve) => {
-      const image = new Image()
-      image.src = this.props.imageUrl
-      image.onload = () => {
-        resolve(image)
-      }
-    })
   }
 
   private initCanvas() {
@@ -49,8 +41,8 @@ class PreviewCanvas extends React.Component<{ imageUrl: string }, {}> {
     if (e == null) return
 
     const rect = e.getBoundingClientRect()
-    this.width = e.width = rect.width
-    this.height = e.height = rect.height
+    this.width = e.width = rect.width * this.scaleFactor
+    this.height = e.height = rect.height * this.scaleFactor
 
     this.renderingContext = e.getContext('2d')
 
@@ -68,18 +60,16 @@ class PreviewCanvas extends React.Component<{ imageUrl: string }, {}> {
     this.observerAndElement = [observer, e]
   }
 
-  private async renderToCanvas() {
-    if (this.imagePromise == null) return
-    const image = await this.imagePromise
-
+  private renderToCanvas() {
     const ctx = this.renderingContext
     if (ctx == null) return
 
-    const iw = (image.width / this.scaleFactor) * this.scale
-    const ih = (image.height / this.scaleFactor) * this.scale
+    const { imageData } = this.props
+    const iw = imageData.width
+    const ih = imageData.height
     for (let x = 0; x < this.width; x += iw) {
       for (let y = 0; y < this.height; y += ih) {
-        ctx.drawImage(image, x, y, iw, ih)
+        ctx.putImageData(imageData, x, y)
       }
     }
   }
