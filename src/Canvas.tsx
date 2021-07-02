@@ -144,7 +144,9 @@ export class Canvas extends React.Component<Props, State> {
   }
 
   getImageData(): ImageData | null {
-    return this.imageData
+    if (this.imageData == null) return null
+    const { data, width, height } = this.imageData
+    return new ImageData(data, width, height)
   }
 
   clearCanvas() {

@@ -10,43 +10,47 @@ export const App: React.FC<{}> = () => {
   const [tool, setTool] = useState<Tool>('pen')
 
   return (
-    <div>
+    <div style={{ display: 'flex', width: '100%' }}>
       <div>
-        <button
-          onClick={() => {
-            const imageData = ref.current?.getImageData()
-            if (imageData != null) {
-              setImageData(imageData)
-            }
-          }}
-        >
-          preview
-        </button>
-        <button onClick={() => ref.current?.clearCanvas()}>clear</button>
-      </div>
-      {imageData != null && (
-        <Preview
-          imageData={imageData}
-          onClose={() => {
-            setImageData(null)
-          }}
+        <div>
+          <button
+            onClick={() => {
+              const imageData = ref.current?.getImageData()
+              if (imageData != null) {
+                setImageData(imageData)
+              }
+            }}
+          >
+            preview
+          </button>
+          <button onClick={() => ref.current?.clearCanvas()}>clear</button>
+        </div>
+        <Canvas
+          ref={ref}
+          width={300}
+          height={300}
+          color={[color.r, color.g, color.b, Math.floor((color.a ?? 1) * 255)]}
+          tool={tool}
         />
-      )}
-      <Canvas
-        ref={ref}
-        width={300}
-        height={300}
-        color={[color.r, color.g, color.b, Math.floor((color.a ?? 1) * 255)]}
-        tool={tool}
-      />
-      <select value={tool} onChange={(e) => setTool(e.target.value as Tool)}>
-        {(['pen', 'eraser', 'fill'] as const).map((t) => (
-          <option key={t} value={t}>
-            {t}
-          </option>
-        ))}
-      </select>
-      <SketchPicker color={color} onChange={(color) => setColor(color.rgb)} />
+        <select value={tool} onChange={(e) => setTool(e.target.value as Tool)}>
+          {(['pen', 'eraser', 'fill'] as const).map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
+        </select>
+        <SketchPicker color={color} onChange={(color) => setColor(color.rgb)} />
+      </div>
+      <div style={{ flex: 1, height: '100vh' }}>
+        {imageData != null && (
+          <Preview
+            imageData={imageData}
+            onClose={() => {
+              setImageData(null)
+            }}
+          />
+        )}
+      </div>
     </div>
   )
 }
