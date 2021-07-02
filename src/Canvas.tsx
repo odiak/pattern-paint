@@ -1,13 +1,17 @@
 import React, { createRef } from 'react'
+import { RGBColor } from 'react-color'
 
 type Props = {
   width: number
   height: number
+  color: Color
+  tool: Tool
 }
 
 type State = {}
 
-type Color = [number, number, number, number]
+export type Tool = 'pen' | 'eraser' | 'fill'
+export type Color = [number, number, number, number]
 
 export class Canvas extends React.Component<Props, State> {
   private canvasRef = createRef<HTMLCanvasElement>()
@@ -15,7 +19,6 @@ export class Canvas extends React.Component<Props, State> {
 
   private scaleFactor = 2
   private lineWidth = 3
-  private lineColor: Color = [0, 0, 0, 255]
 
   private prevX = -1
   private prevY = -1
@@ -36,9 +39,7 @@ export class Canvas extends React.Component<Props, State> {
     )
     clear(imageData)
 
-    // drawLine(imageData, 30 * 2, 180 * 2, 200 * 2, 250 * 2, 30 * 2, [255, 0, 0])
     this.imageData = imageData
-    // ctx.putImageData(imageData, 0, 0)
 
     e.addEventListener('pointerdown', this.onPointerDown)
     e.addEventListener('pointermove', this.onPointerMove)
@@ -48,9 +49,25 @@ export class Canvas extends React.Component<Props, State> {
   onPointerDown = (e: PointerEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    this.prevX = e.offsetX
-    this.prevY = e.offsetY
-    this.isPointerActive = true
+
+    switch (this.props.tool) {
+      case 'pen':
+      case 'eraser':
+        this.prevX = e.offsetX
+        this.prevY = e.offsetY
+        this.isPointerActive = true
+        break
+
+      case 'fill':
+        fill(
+          requireNotNull(this.imageData),
+          e.offsetX * this.scaleFactor,
+          e.offsetY * this.scaleFactor,
+          this.props.color
+        )
+        this.requestFrame()
+        break
+    }
   }
 
   onPointerMove = (e: PointerEvent) => {
@@ -69,7 +86,7 @@ export class Canvas extends React.Component<Props, State> {
         x * this.scaleFactor,
         y * this.scaleFactor,
         this.lineWidth * this.scaleFactor,
-        this.lineColor
+        this.props.color
       )
       this.requestFrame()
 
@@ -93,7 +110,7 @@ export class Canvas extends React.Component<Props, State> {
           this.prevX * s + 0.01,
           this.prevY * s,
           this.lineWidth * s,
-          this.lineColor
+          this.props.color
         )
         this.requestFrame()
       }
@@ -208,4 +225,35 @@ function norm2(x: number, y: number): number {
 
 function clear(imageData: ImageData) {
   imageData.data.fill(255)
+}
+
+function fill(imageData: ImageData, x: number, y: number, color: Color): void {
+  const { width, height, data } = imageData
+  x = Math.floor(x)
+  y = Math.floor(y)
+  const isFilled: boolean[] = new Array(width * height).fill(false)
+  const colorAtPoint = getColorAt(data, (x + y * width) * 4, true)
+  const q: Array<{ x: number; y: number }> = [{ x, y }]
+  while (q.length !== 0) {
+    const { x, y } = q.shift()!
+    const i = x + y * width
+    if (isFilled[i]) continue
+    const j = i * 4
+    if (!isEqualColor(colorAtPoint, getColorAt(data, j))) continue
+    data.set(color, j)
+    isFilled[i] = true
+    if (x > 0) q.push({ x: x - 1, y })
+    if (y > 0) q.push({ x, y: y - 1 })
+    if (x < width - 1) q.push({ x: x + 1, y })
+    if (y < height - 1) q.push({ x, y: y + 1 })
+  }
+}
+
+function getColorAt(data: Uint8ClampedArray, i: number, copy: boolean = false): Color {
+  const color = data.subarray(i, i + 4) as unknown as Color
+  return copy ? [...color] : color
+}
+
+function isEqualColor(color1: Color, color2: Color): boolean {
+  return color1.every((c, i) => c === color2[i])
 }
