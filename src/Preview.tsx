@@ -2,13 +2,10 @@ import React, { createRef } from 'react'
 
 type Props = {
   imageData: ImageData
-  onClose: () => void
-}
-export const Preview: React.FC<Props> = ({ imageData, onClose }) => {
-  return <PreviewCanvas imageData={imageData} />
+  offset: number
 }
 
-class PreviewCanvas extends React.Component<{ imageData: ImageData }, {}> {
+export class Preview extends React.Component<Props, {}> {
   private canvasRef = createRef<HTMLCanvasElement>()
   private renderingContext: CanvasRenderingContext2D | null = null
   private width = -1
@@ -67,22 +64,29 @@ class PreviewCanvas extends React.Component<{ imageData: ImageData }, {}> {
     if (imageData == null) return
     const iw = imageData.width
     const ih = imageData.height
-    for (let x = 0; x < this.width; x += iw) {
-      for (let y = 0; y < this.height; y += ih) {
+    let s = 0
+    for (let y = 0; y < this.height; y += ih) {
+      for (let x = s; x < this.width; x += iw) {
         ctx.putImageData(imageData, x, y)
       }
+      s += this.props.offset * iw
+      if (s > 0) s -= iw
     }
   }
 
   componentDidUpdate(prevProps: Props) {
-    if (this.props.imageData !== prevProps.imageData) {
+    if (this.props.imageData !== prevProps.imageData || this.props.offset !== prevProps.offset) {
       this.imageData = resizeImageData(this.props.imageData, this.scale)
       this.renderToCanvas()
     }
   }
 
   render() {
-    return <canvas ref={this.canvasRef} style={{ display: 'block' }}></canvas>
+    return (
+      <div style={{ width: '100%', height: '100%' }}>
+        <canvas ref={this.canvasRef} style={{ display: 'block' }}></canvas>
+      </div>
+    )
   }
 }
 

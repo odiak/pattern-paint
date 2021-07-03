@@ -1,5 +1,4 @@
 import React, { createRef } from 'react'
-import { RGBColor } from 'react-color'
 
 type Props = {
   width: number
@@ -43,7 +42,7 @@ export class Canvas extends React.Component<Props, State> {
 
     e.addEventListener('pointerdown', this.onPointerDown)
     e.addEventListener('pointermove', this.onPointerMove)
-    document.body.addEventListener('pointerup', this.onGlobalPointerUp)
+    e.addEventListener('pointerup', this.onPointerUp)
   }
 
   onPointerDown = (e: PointerEvent) => {
@@ -56,6 +55,7 @@ export class Canvas extends React.Component<Props, State> {
         this.prevX = e.offsetX
         this.prevY = e.offsetY
         this.isPointerActive = true
+        ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
         break
 
       case 'fill':
@@ -95,8 +95,11 @@ export class Canvas extends React.Component<Props, State> {
     }
   }
 
-  onGlobalPointerUp = (e: PointerEvent) => {
+  onPointerUp = (e: PointerEvent) => {
     if (this.isPointerActive) {
+      e.preventDefault()
+      e.stopPropagation()
+
       this.isPointerActive = false
       this.isPointerMoved = false
 

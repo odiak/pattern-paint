@@ -8,6 +8,7 @@ export const App: React.FC<{}> = () => {
   const [imageData, setImageData] = useState<ImageData | null>(null)
   const [color, setColor] = useState<RGBColor>({ r: 0, g: 0, b: 0 })
   const [tool, setTool] = useState<Tool>('pen')
+  const [offset, setOffset] = useState(0)
 
   return (
     <div style={{ display: 'flex', width: '100%' }}>
@@ -32,6 +33,7 @@ export const App: React.FC<{}> = () => {
           color={[color.r, color.g, color.b, Math.floor((color.a ?? 1) * 255)]}
           tool={tool}
         />
+        <div></div>
         <select value={tool} onChange={(e) => setTool(e.target.value as Tool)}>
           {(['pen', 'eraser', 'fill'] as const).map((t) => (
             <option key={t} value={t}>
@@ -41,15 +43,18 @@ export const App: React.FC<{}> = () => {
         </select>
         <SketchPicker color={color} onChange={(color) => setColor(color.rgb)} />
       </div>
-      <div style={{ flex: 1, height: '100vh' }}>
-        {imageData != null && (
-          <Preview
-            imageData={imageData}
-            onClose={() => {
-              setImageData(null)
-            }}
+      <div style={{ flex: 1, height: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <div>
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.01}
+            value={offset}
+            onChange={(e) => setOffset(e.target.valueAsNumber)}
           />
-        )}
+        </div>
+        {imageData != null && <Preview imageData={imageData} offset={offset} />}
       </div>
     </div>
   )
