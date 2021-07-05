@@ -24,21 +24,26 @@ export class Canvas extends React.Component<Props, State> {
   private isPointerActive = false
   private isPointerMoved = false
 
-  private imageData: ImageData | null = null
+  private imageData: ImageData
 
   private isRequestingFrame = false
+
+  constructor(props: Props) {
+    super(props)
+
+    this.imageData = new ImageData(
+      this.props.width * this.scaleFactor,
+      this.props.height * this.scaleFactor
+    )
+    clear(this.imageData)
+  }
 
   componentDidMount() {
     const e = requireNotNull(this.canvasRef.current)
     const ctx = requireNotNull(e.getContext('2d'))
     this.renderingContext = ctx
-    const imageData = new ImageData(
-      this.props.width * this.scaleFactor,
-      this.props.height * this.scaleFactor
-    )
-    clear(imageData)
 
-    this.imageData = imageData
+    this.requestFrame()
 
     e.addEventListener('pointerdown', this.onPointerDown)
     e.addEventListener('pointermove', this.onPointerMove)
@@ -60,7 +65,7 @@ export class Canvas extends React.Component<Props, State> {
 
       case 'fill':
         fill(
-          requireNotNull(this.imageData),
+          this.imageData,
           e.offsetX * this.scaleFactor,
           e.offsetY * this.scaleFactor,
           this.props.color
@@ -73,14 +78,13 @@ export class Canvas extends React.Component<Props, State> {
   onPointerMove = (e: PointerEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    const imageData = requireNotNull(this.imageData)
     if (this.isPointerActive) {
       this.isPointerMoved = true
 
       const x = e.offsetX
       const y = e.offsetY
       drawLine(
-        imageData,
+        this.imageData,
         this.prevX * this.scaleFactor,
         this.prevY * this.scaleFactor,
         x * this.scaleFactor,
@@ -103,11 +107,10 @@ export class Canvas extends React.Component<Props, State> {
       this.isPointerActive = false
       this.isPointerMoved = false
 
-      const imageData = requireNotNull(this.imageData)
       if (!this.isPointerMoved) {
         const s = this.scaleFactor
         drawLine(
-          imageData,
+          this.imageData,
           this.prevX * s,
           this.prevY * s,
           this.prevX * s + 0.01,
@@ -126,7 +129,7 @@ export class Canvas extends React.Component<Props, State> {
     this.isRequestingFrame = true
     requestAnimationFrame(() => {
       this.isRequestingFrame = false
-      this.renderingContext!!.putImageData(this.imageData!, 0, 0)
+      this.renderingContext!!.putImageData(this.imageData, 0, 0)
     })
   }
 
@@ -146,17 +149,15 @@ export class Canvas extends React.Component<Props, State> {
     )
   }
 
-  getImageData(): ImageData | null {
-    if (this.imageData == null) return null
+  getImageData(): ImageData {
     const { data, width, height } = this.imageData
     return new ImageData(data, width, height)
   }
 
   clearCanvas() {
     const ctx = requireNotNull(this.renderingContext)
-    const imageData = requireNotNull(this.imageData)
-    clear(imageData)
-    ctx.putImageData(imageData, 0, 0)
+    clear(this.imageData)
+    ctx.putImageData(this.imageData, 0, 0)
   }
 }
 
