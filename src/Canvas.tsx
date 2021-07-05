@@ -78,8 +78,24 @@ export class Canvas extends React.Component<Props, State> {
   onPointerMove = (e: PointerEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    if (this.isPointerActive) {
+    IF: if (this.isPointerActive) {
       this.isPointerMoved = true
+
+      let lineWidth: number
+      let color: Color
+      switch (this.props.tool) {
+        case 'fill':
+          break IF
+        case 'pen':
+          lineWidth = this.lineWidth
+          color = this.props.color
+          break
+
+        case 'eraser':
+          lineWidth = this.lineWidth
+          color = [255, 255, 255, 255]
+          break
+      }
 
       const x = e.offsetX
       const y = e.offsetY
@@ -89,8 +105,8 @@ export class Canvas extends React.Component<Props, State> {
         this.prevY * this.scaleFactor,
         x * this.scaleFactor,
         y * this.scaleFactor,
-        this.lineWidth * this.scaleFactor,
-        this.props.color
+        lineWidth * this.scaleFactor,
+        color
       )
       this.requestFrame()
 
@@ -107,16 +123,31 @@ export class Canvas extends React.Component<Props, State> {
       this.isPointerActive = false
       this.isPointerMoved = false
 
-      if (!this.isPointerMoved) {
+      IF: if (!this.isPointerMoved) {
         const s = this.scaleFactor
+        let lineWidth: number
+        let color: Color
+        switch (this.props.tool) {
+          case 'fill':
+            break IF
+          case 'pen':
+            lineWidth = this.lineWidth
+            color = this.props.color
+            break
+
+          case 'eraser':
+            lineWidth = this.lineWidth
+            color = [255, 255, 255, 255]
+            break
+        }
         drawLine(
           this.imageData,
           this.prevX * s,
           this.prevY * s,
           this.prevX * s + 0.01,
           this.prevY * s,
-          this.lineWidth * s,
-          this.props.color
+          lineWidth * s,
+          color
         )
         this.requestFrame()
       }
