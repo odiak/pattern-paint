@@ -2,6 +2,26 @@ import React, { useRef, useState } from 'react'
 import { RGBColor, SketchPicker } from 'react-color'
 import { Canvas, Tool } from './Canvas'
 import { Preview } from './Preview'
+import styled, { css } from 'styled-components'
+
+const ToolButtonsContainer = styled.div`
+  margin: 8px 0;
+`
+
+const ToolButton = styled.button<{ selected?: boolean }>`
+  border: 1px solid #888;
+  background: #eee;
+  border-radius: 4px;
+  margin-right: 6px;
+  padding: 4px 6px;
+  ${({ selected }) =>
+    selected &&
+    css`
+      border-color: #333;
+      background: #666;
+      color: #fff;
+    `}
+`
 
 export const App: React.FC<{}> = () => {
   const ref = useRef<Canvas>(null)
@@ -33,14 +53,13 @@ export const App: React.FC<{}> = () => {
           color={[color.r, color.g, color.b, Math.floor((color.a ?? 1) * 255)]}
           tool={tool}
         />
-        <div></div>
-        <select value={tool} onChange={(e) => setTool(e.target.value as Tool)}>
+        <ToolButtonsContainer>
           {(['pen', 'eraser', 'fill'] as const).map((t) => (
-            <option key={t} value={t}>
+            <ToolButton selected={tool === t} onClick={() => setTool(t)}>
               {t}
-            </option>
+            </ToolButton>
           ))}
-        </select>
+        </ToolButtonsContainer>
         <SketchPicker color={color} onChange={(color) => setColor(color.rgb)} />
       </div>
       <div style={{ flex: 1, height: '100vh', display: 'flex', flexDirection: 'column' }}>
