@@ -34,9 +34,9 @@ export class VirtualImageData {
     }
     context.fillStyle = '#000'
     context.fillRect(0, vSpace, width, lineWidth)
-    context.fillRect(0, vSpace + originalHeight, width, lineWidth)
+    context.fillRect(0, vSpace + lineWidth + originalHeight, width, lineWidth)
     context.fillRect(hSpace, 0, lineWidth, height)
-    context.fillRect(hSpace + originalWidth, 0, lineWidth, height)
+    context.fillRect(hSpace + lineWidth + originalWidth, 0, lineWidth, height)
   }
 
   private toIndex(x: number, y: number): number {
