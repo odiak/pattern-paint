@@ -1,6 +1,6 @@
-import React, { useRef, useState } from 'react'
+import React, { useCallback, useRef, useState } from 'react'
 import { RGBColor, SketchPicker } from 'react-color'
-import { Canvas, Tool } from './Canvas'
+import { Canvas, Color, Tool } from './Canvas'
 import { Preview } from './Preview'
 import styled, { css } from 'styled-components'
 
@@ -30,6 +30,10 @@ export const App: React.FC<{}> = () => {
   const [tool, setTool] = useState<Tool>('pen')
   const [offset, setOffset] = useState(0)
 
+  const onChangeColor = useCallback(([r, g, b, a]: Color): void => {
+    setColor({ r, g, b, a: a / 255 })
+  }, [])
+
   return (
     <div style={{ display: 'flex', width: '100%' }}>
       <div>
@@ -52,9 +56,10 @@ export const App: React.FC<{}> = () => {
           height={300}
           color={[color.r, color.g, color.b, Math.floor((color.a ?? 1) * 255)]}
           tool={tool}
+          onChangeColor={onChangeColor}
         />
         <ToolButtonsContainer>
-          {(['pen', 'eraser', 'fill'] as const).map((t) => (
+          {(['pen', 'eraser', 'fill', 'color-picker'] as const).map((t) => (
             <ToolButton key={t} selected={tool === t} onClick={() => setTool(t)}>
               {t}
             </ToolButton>

@@ -6,11 +6,12 @@ type Props = {
   height: number
   color: Color
   tool: Tool
+  onChangeColor?: (color: Color) => void
 }
 
 type State = {}
 
-export type Tool = 'pen' | 'eraser' | 'fill'
+export type Tool = 'pen' | 'eraser' | 'fill' | 'color-picker'
 export type Color = [number, number, number, number]
 
 export class Canvas extends React.Component<Props, State> {
@@ -73,6 +74,17 @@ export class Canvas extends React.Component<Props, State> {
         )
         this.requestFrame()
         break
+
+      case 'color-picker': {
+        const color = this.imageData.getColorAt(
+          Math.round(e.offsetX * this.scaleFactor),
+          Math.round(e.offsetY * this.scaleFactor)
+        )
+        if (!color.includes(-1)) {
+          this.props.onChangeColor?.(color)
+        }
+        break
+      }
     }
   }
 
@@ -86,7 +98,9 @@ export class Canvas extends React.Component<Props, State> {
       let color: Color
       switch (this.props.tool) {
         case 'fill':
+        case 'color-picker':
           break IF
+
         case 'pen':
           lineWidth = this.lineWidth
           color = this.props.color
@@ -130,7 +144,9 @@ export class Canvas extends React.Component<Props, State> {
         let color: Color
         switch (this.props.tool) {
           case 'fill':
+          case 'color-picker':
             break IF
+
           case 'pen':
             lineWidth = this.lineWidth
             color = this.props.color
