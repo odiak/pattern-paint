@@ -1,5 +1,3 @@
-import { createTextChangeRange } from 'typescript'
-
 type Color = [number, number, number, number]
 
 export class VirtualImageData {
