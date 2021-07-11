@@ -1,4 +1,5 @@
 import React, { createRef } from 'react'
+import { VirtualImageData } from './VirtualImageData'
 
 type Props = {
   width: number
@@ -24,16 +25,16 @@ export class Canvas extends React.Component<Props, State> {
   private isPointerActive = false
   private isPointerMoved = false
 
-  private imageData: ImageData
+  private imageData: VirtualImageData
 
   private isRequestingFrame = false
 
   constructor(props: Props) {
     super(props)
 
-    this.imageData = new ImageData(
-      this.props.width * this.scaleFactor,
-      this.props.height * this.scaleFactor
+    this.imageData = new VirtualImageData(
+      new ImageData(this.props.width * this.scaleFactor, this.props.height * this.scaleFactor),
+      this.scaleFactor
     )
     clear(this.imageData)
   }
@@ -160,7 +161,8 @@ export class Canvas extends React.Component<Props, State> {
     this.isRequestingFrame = true
     requestAnimationFrame(() => {
       this.isRequestingFrame = false
-      this.renderingContext!!.putImageData(this.imageData, 0, 0)
+      const ctx = this.renderingContext!!
+      this.imageData.drawToCanvas(ctx)
     })
   }
 
@@ -168,12 +170,12 @@ export class Canvas extends React.Component<Props, State> {
     return (
       <canvas
         ref={this.canvasRef}
-        width={this.props.width * this.scaleFactor}
-        height={this.props.height * this.scaleFactor}
+        width={this.imageData.width}
+        height={this.imageData.height}
         style={{
           border: '1px solid #000',
-          width: this.props.width,
-          height: this.props.height,
+          width: this.imageData.width / this.scaleFactor,
+          height: this.imageData.height / this.scaleFactor,
           touchAction: 'none'
         }}
       ></canvas>
@@ -181,14 +183,13 @@ export class Canvas extends React.Component<Props, State> {
   }
 
   getImageData(): ImageData {
-    const { data, width, height } = this.imageData
+    const { data, width, height } = this.imageData.imageData
     return new ImageData(data, width, height)
   }
 
   clearCanvas() {
-    const ctx = requireNotNull(this.renderingContext)
     clear(this.imageData)
-    ctx.putImageData(this.imageData, 0, 0)
+    this.requestFrame()
   }
 }
 
@@ -198,13 +199,13 @@ function requireNotNull<T>(v: T | null | undefined): T {
 }
 
 function drawLine(
-  imageData: ImageData,
+  imageData: VirtualImageData,
   x0: number,
   y0: number,
   x1: number,
   y1: number,
   lineWidth: number,
-  [colorR, colorG, colorB, colorA]: Color
+  color: Color
 ) {
   const { width, height } = imageData
   const w2 = lineWidth / 2
@@ -246,11 +247,7 @@ function drawLine(
           break
       }
       if (fill) {
-        const i = (x + y * width) * 4
-        imageData.data[i] = colorR
-        imageData.data[i + 1] = colorG
-        imageData.data[i + 2] = colorB
-        imageData.data[i + 3] = colorA
+        imageData.setColorAt(x, y, color)
       }
     }
   }
@@ -260,24 +257,23 @@ function norm2(x: number, y: number): number {
   return x * x + y * y
 }
 
-function clear(imageData: ImageData) {
-  imageData.data.fill(255)
+function clear(imageData: VirtualImageData) {
+  imageData.imageData.data.fill(255)
 }
 
-function fill(imageData: ImageData, x: number, y: number, color: Color): void {
-  const { width, height, data } = imageData
+function fill(imageData: VirtualImageData, x: number, y: number, color: Color): void {
+  const { width, height } = imageData
   x = Math.floor(x)
   y = Math.floor(y)
   const isFilled: boolean[] = new Array(width * height).fill(false)
-  const colorAtPoint = getColorAt(data, (x + y * width) * 4, true)
+  const colorAtPoint = imageData.getColorAt(x, y)
   const q: Array<{ x: number; y: number }> = [{ x, y }]
   while (q.length !== 0) {
     const { x, y } = q.shift()!
     const i = x + y * width
     if (isFilled[i]) continue
-    const j = i * 4
-    if (!isEqualColor(colorAtPoint, getColorAt(data, j))) continue
-    data.set(color, j)
+    if (!isEqualColor(colorAtPoint, imageData.getColorAt(x, y))) continue
+    imageData.setColorAt(x, y, color)
     isFilled[i] = true
     if (x > 0) q.push({ x: x - 1, y })
     if (y > 0) q.push({ x, y: y - 1 })

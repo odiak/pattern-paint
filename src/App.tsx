@@ -55,7 +55,7 @@ export const App: React.FC<{}> = () => {
         />
         <ToolButtonsContainer>
           {(['pen', 'eraser', 'fill'] as const).map((t) => (
-            <ToolButton selected={tool === t} onClick={() => setTool(t)}>
+            <ToolButton key={t} selected={tool === t} onClick={() => setTool(t)}>
               {t}
             </ToolButton>
           ))}
