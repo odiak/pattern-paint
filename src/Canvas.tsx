@@ -30,6 +30,10 @@ export class Canvas extends React.Component<Props, State> {
 
   private isRequestingFrame = false
 
+  private undoStack: Array<ImageData> = []
+  private redoStack: Array<ImageData> = []
+  private prevImageData!: ImageData
+
   constructor(props: Props) {
     super(props)
 
@@ -37,6 +41,7 @@ export class Canvas extends React.Component<Props, State> {
       new ImageData(this.props.width * this.scaleFactor, this.props.height * this.scaleFactor),
       this.scaleFactor
     )
+    this.savePrevImageData()
     clear(this.imageData)
   }
 
@@ -72,6 +77,7 @@ export class Canvas extends React.Component<Props, State> {
           e.offsetY * this.scaleFactor,
           this.props.color
         )
+        this.addToUndoStack()
         this.requestFrame()
         break
 
@@ -168,6 +174,8 @@ export class Canvas extends React.Component<Props, State> {
         )
         this.requestFrame()
       }
+
+      this.addToUndoStack()
     }
   }
 
@@ -205,6 +213,39 @@ export class Canvas extends React.Component<Props, State> {
 
   clearCanvas() {
     clear(this.imageData)
+    this.requestFrame()
+    this.addToUndoStack()
+  }
+
+  private savePrevImageData() {
+    const { width, height, data } = this.imageData.imageData
+    const newData = new Uint8ClampedArray(data)
+    this.prevImageData = new ImageData(newData, width, height)
+  }
+
+  private addToUndoStack() {
+    this.undoStack.push(this.prevImageData)
+    this.redoStack = []
+    this.savePrevImageData()
+  }
+
+  undo() {
+    const popped = this.undoStack.pop()
+    if (popped == null) return
+    this.savePrevImageData()
+    this.imageData.imageData.data.set(popped.data, 0)
+    this.redoStack.push(this.prevImageData)
+    this.prevImageData = popped
+    this.requestFrame()
+  }
+
+  redo() {
+    const popped = this.redoStack.pop()
+    if (popped == null) return
+    this.savePrevImageData()
+    this.imageData.imageData.data.set(popped.data, 0)
+    this.undoStack.push(this.prevImageData)
+    this.prevImageData = popped
     this.requestFrame()
   }
 }

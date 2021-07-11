@@ -8,12 +8,15 @@ const ToolButtonsContainer = styled.div`
   margin: 8px 0;
 `
 
-const ToolButton = styled.button<{ selected?: boolean }>`
+const Button = styled.button`
   border: 1px solid #888;
   background: #eee;
   border-radius: 4px;
   margin-right: 6px;
   padding: 4px 6px;
+`
+
+const ToolButton = styled(Button)<{ selected?: boolean }>`
   ${({ selected }) =>
     selected &&
     css`
@@ -37,8 +40,8 @@ export const App: React.FC<{}> = () => {
   return (
     <div style={{ display: 'flex', width: '100%' }}>
       <div>
-        <div>
-          <button
+        <ToolButtonsContainer>
+          <Button
             onClick={() => {
               const imageData = ref.current?.getImageData()
               if (imageData != null) {
@@ -47,9 +50,11 @@ export const App: React.FC<{}> = () => {
             }}
           >
             preview
-          </button>
-          <button onClick={() => ref.current?.clearCanvas()}>clear</button>
-        </div>
+          </Button>
+          <Button onClick={() => ref.current?.clearCanvas()}>clear</Button>
+          <Button onClick={() => ref.current?.undo()}>undo</Button>
+          <Button onClick={() => ref.current?.redo()}>redo</Button>
+        </ToolButtonsContainer>
         <Canvas
           ref={ref}
           width={300}
