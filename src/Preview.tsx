@@ -42,7 +42,6 @@ export class Preview extends React.Component<Props, {}> {
 
     const observer = new ResizeObserver(() => {
       const newRect = e.parentElement!.getBoundingClientRect()
-      console.log('resize!')
       if (newRect.width !== width || newRect.height !== height) {
         this.width = e.width = newRect.width * this.scaleFactor
         this.height = e.height = newRect.height * this.scaleFactor
