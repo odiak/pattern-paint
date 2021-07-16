@@ -3,6 +3,7 @@ import React, { createRef } from 'react'
 type Props = {
   imageData: ImageData
   offset: number
+  scale: number
 }
 
 export class Preview extends React.Component<Props, {}> {
@@ -12,7 +13,6 @@ export class Preview extends React.Component<Props, {}> {
   private height = -1
   private observerAndElement: [ResizeObserver, HTMLElement] | null = null
   private scaleFactor = 2
-  private scale = 0.5
   private imageData: ImageData | null = null
 
   componentDidMount() {
@@ -23,7 +23,7 @@ export class Preview extends React.Component<Props, {}> {
     const e = this.canvasRef.current
     if (e == null) return
 
-    this.imageData = resizeImageData(this.props.imageData, this.scale)
+    this.imageData = resizeImageData(this.props.imageData, this.props.scale)
 
     const { width, height } = e.parentElement!.getBoundingClientRect()
     this.width = e.width = width * this.scaleFactor
@@ -74,8 +74,12 @@ export class Preview extends React.Component<Props, {}> {
   }
 
   componentDidUpdate(prevProps: Props) {
-    if (this.props.imageData !== prevProps.imageData || this.props.offset !== prevProps.offset) {
-      this.imageData = resizeImageData(this.props.imageData, this.scale)
+    if (
+      this.props.imageData !== prevProps.imageData ||
+      this.props.offset !== prevProps.offset ||
+      this.props.scale !== prevProps.scale
+    ) {
+      this.imageData = resizeImageData(this.props.imageData, this.props.scale)
       this.renderToCanvas()
     }
   }

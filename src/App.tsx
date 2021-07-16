@@ -32,6 +32,7 @@ export const App: React.FC<{}> = () => {
   const [color, setColor] = useState<RGBColor>({ r: 0, g: 0, b: 0 })
   const [tool, setTool] = useState<Tool>('pen')
   const [offset, setOffset] = useState(0)
+  const [scale, setScale] = useState(0.5)
 
   const onChangeColor = useCallback(([r, g, b, a]: Color): void => {
     setColor({ r, g, b, a: a / 255 })
@@ -82,8 +83,16 @@ export const App: React.FC<{}> = () => {
             value={offset}
             onChange={(e) => setOffset(e.target.valueAsNumber)}
           />
+          <input
+            type="range"
+            min={0.2}
+            max={3}
+            step={0.05}
+            value={scale}
+            onChange={(e) => setScale(e.target.valueAsNumber)}
+          />
         </div>
-        {imageData != null && <Preview imageData={imageData} offset={offset} />}
+        {imageData != null && <Preview imageData={imageData} offset={offset} scale={scale} />}
       </div>
     </div>
   )
